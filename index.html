@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Půjdeš na kávu?</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        
+        .coffee-bean {
+            animation: bounce 2s infinite;
+        }
+        
+        .escape-button {
+            transition: all 0.3s ease;
+        }
+        
+        .success-animation {
+            animation: bounce 0.5s ease-out;
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-gradient-to-br from-amber-50 to-orange-100 flex items-center justify-center p-4">
+    <div class="max-w-md w-full">
+        <!-- Coffee cup decoration -->
+        <div class="text-center mb-8">
+            <div class="coffee-bean text-6xl mb-4">☕</div>
+            <h1 class="text-3xl font-bold text-gray-800 mb-2">Půjdeš na kávu?</h1>
+            <p class="text-gray-600">Pojďme si dát dobrou kávu společně!</p>
+        </div>
+        
+        <!-- Question and buttons -->
+        <div id="question-container" class="bg-white rounded-2xl shadow-xl p-8 text-center">
+            <div class="space-y-4">
+                <button 
+                    id="yes-btn" 
+                    class="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-4 px-6 rounded-lg transform transition hover:scale-105 focus:outline-none focus:ring-4 focus:ring-green-300"
+                >
+                    Ano, rád/ráda! 😊
+                </button>
+                
+                <button 
+                    id="no-btn" 
+                    class="escape-button w-full bg-red-500 hover:bg-red-600 text-white font-bold py-4 px-6 rounded-lg focus:outline-none focus:ring-4 focus:ring-red-300"
+                >
+                    Ne, děkuji
+                </button>
+            </div>
+        </div>
+        
+        <!-- Success message (hidden initially) -->
+        <div id="success-container" class="hidden bg-white rounded-2xl shadow-xl p-8 text-center success-animation">
+            <div class="text-6xl mb-4">🎉</div>
+            <h2 class="text-2xl font-bold text-green-600 mb-2">Dobře, tak jdeme!!!</h2>
+            <p class="text-gray-600">Už se těším na tu skvělou kávu s tebou!</p>
+            <div class="mt-6 text-4xl">☕🚀</div>
+        </div>
+    </div>
+
+    <script>
+        const noBtn = document.getElementById('no-btn');
+        const yesBtn = document.getElementById('yes-btn');
+        const questionContainer = document.getElementById('question-container');
+        const successContainer = document.getElementById('success-container');
+        
+        // Store original button width
+        const originalButtonWidth = noBtn.getBoundingClientRect().width;
+        
+        // Function to move the "no" button away from cursor
+        function escapeButton(e) {
+            const buttonRect = noBtn.getBoundingClientRect();
+            const buttonCenterX = buttonRect.left + buttonRect.width / 2;
+            const buttonCenterY = buttonRect.top + buttonRect.height / 2;
+            
+            // Calculate distance from cursor to button center
+            const distance = Math.sqrt(
+                Math.pow(e.clientX - buttonCenterX, 2) + 
+                Math.pow(e.clientY - buttonCenterY, 2)
+            );
+            
+            // If cursor is close to button, move it away
+            if (distance < 200) {
+                const maxX = window.innerWidth - originalButtonWidth - 20;
+                const maxY = window.innerHeight - buttonRect.height - 20;
+                
+                // Calculate new random position
+                let newX = Math.random() * maxX;
+                let newY = Math.random() * maxY;
+                
+                // Make sure the new position is far from cursor
+                const minDistance = 300;
+                let attempts = 0;
+                while (attempts < 10) {
+                    const newDistance = Math.sqrt(
+                        Math.pow(e.clientX - (newX + originalButtonWidth / 2), 2) + 
+                        Math.pow(e.clientY - (newY + buttonRect.height / 2), 2)
+                    );
+                    
+                    if (newDistance >= minDistance) break;
+                    
+                    newX = Math.random() * maxX;
+                    newY = Math.random() * maxY;
+                    attempts++;
+                }
+                
+                // Apply new position with smooth transition
+                noBtn.style.position = 'fixed';
+                noBtn.style.left = newX + 'px';
+                noBtn.style.top = newY + 'px';
+                noBtn.style.zIndex = '1000';
+                noBtn.style.width = originalButtonWidth + 'px';
+                noBtn.style.transition = 'all 0.2s ease-out';
+                
+                // Remove transition after animation completes
+                setTimeout(() => {
+                    noBtn.style.transition = '';
+                }, 200);
+            }
+        }
+        
+        // Add mousemove listener to the whole document
+        document.addEventListener('mousemove', escapeButton);
+        
+        // Handle "yes" button click
+        yesBtn.addEventListener('click', function() {
+            questionContainer.classList.add('hidden');
+            successContainer.classList.remove('hidden');
+            
+            // Remove the escape functionality
+            document.removeEventListener('mousemove', escapeButton);
+            
+            // Reset no button position
+            noBtn.style.position = '';
+            noBtn.style.left = '';
+            noBtn.style.top = '';
+            noBtn.style.zIndex = '';
+            noBtn.style.width = '';
+        });
+        
+        // Handle touch events for mobile
+        noBtn.addEventListener('touchstart', function(e) {
+            e.preventDefault();
+            escapeButton(e.touches[0]);
+        });
+    </script>
+</body>
+</html>
