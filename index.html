@@ -126,20 +126,74 @@
         document.addEventListener('mousemove', escapeButton);
         
         // Handle "yes" button click
-        yesBtn.addEventListener('click', function() {
-            questionContainer.classList.add('hidden');
-            successContainer.classList.remove('hidden');
+        yesBtn.addEventListener('click', async function() {
+            // Show loading state
+            yesBtn.disabled = true;
+            yesBtn.textContent = 'Odesílám...';
+            yesBtn.classList.add('opacity-75');
             
-            // Remove the escape functionality
-            document.removeEventListener('mousemove', escapeButton);
-            
-            // Reset no button position
-            noBtn.style.position = '';
-            noBtn.style.left = '';
-            noBtn.style.top = '';
-            noBtn.style.zIndex = '';
-            noBtn.style.width = '';
+            try {
+                // Get user info for notification
+                const userInfo = {
+                    ip: await getUserIP(),
+                    userAgent: navigator.userAgent,
+                    timestamp: new Date().toISOString()
+                };
+                
+                // Send Slack notification
+                const response = await fetch('/.netlify/functions/slack-notification', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(userInfo)
+                });
+                
+                if (response.ok) {
+                    // Show success message
+                    questionContainer.classList.add('hidden');
+                    successContainer.classList.remove('hidden');
+                    
+                    // Remove the escape functionality
+                    document.removeEventListener('mousemove', escapeButton);
+                    
+                    // Reset no button position
+                    noBtn.style.position = '';
+                    noBtn.style.left = '';
+                    noBtn.style.top = '';
+                    noBtn.style.zIndex = '';
+                    noBtn.style.width = '';
+                } else {
+                    throw new Error('Notification failed');
+                }
+            } catch (error) {
+                console.error('Error sending notification:', error);
+                // Still show success message even if notification fails
+                questionContainer.classList.add('hidden');
+                successContainer.classList.remove('hidden');
+                
+                // Remove the escape functionality
+                document.removeEventListener('mousemove', escapeButton);
+                
+                // Reset no button position
+                noBtn.style.position = '';
+                noBtn.style.left = '';
+                noBtn.style.top = '';
+                noBtn.style.zIndex = '';
+                noBtn.style.width = '';
+            }
         });
+        
+        // Helper function to get user IP
+        async function getUserIP() {
+            try {
+                const response = await fetch('https://api.ipify.org?format=json');
+                const data = await response.json();
+                return data.ip;
+            } catch (error) {
+                return 'Neznámá';
+            }
+        }
         
         // Handle touch events for mobile
         noBtn.addEventListener('touchstart', function(e) {

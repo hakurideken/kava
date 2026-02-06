@@ -1,0 +1,1 @@
+{"name": "coffee-invitation", "version": "1.0.0", "description": "Coffee invitation website with Slack notifications", "main": "index.html", "scripts": {"build": "echo No build step needed", "serve": "python3 -m http.server 8080"}, "dependencies": {"node-fetch": "^2.6.7"}}
